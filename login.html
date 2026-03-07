@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login – Healthcare Hub</title>
+  <link rel="stylesheet" href="auth.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    /* Top navbar consistent with index.html */
+    .top-navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 16px var(--shadow);
+    }
+    .top-navbar .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 28px;
+      height: 64px;
+    }
+    .top-navbar .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      text-decoration: none;
+    }
+    .top-navbar .brand-icon { font-size: 1.6rem; }
+    .top-navbar .brand strong { color: var(--teal); }
+    .top-navbar .nav-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+    .top-navbar .nav-links a {
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text-mid);
+      transition: var(--transition);
+      text-decoration: none;
+      position: relative;
+    }
+    .top-navbar .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -3px; left: 0;
+      width: 0; height: 2px;
+      background: var(--teal);
+      transition: var(--transition);
+    }
+    .top-navbar .nav-links a:hover { color: var(--teal); }
+    .top-navbar .nav-links a:hover::after { width: 100%; }
+    .top-navbar .nav-actions { display: flex; gap: 12px; align-items: center; }
+    .btn-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 20px;
+      border-radius: 50px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: var(--transition);
+      text-decoration: none;
+      font-family: var(--font-body);
+    }
+    .btn-nav-outline { color: var(--teal); border-color: var(--teal); }
+    .btn-nav-outline:hover { background: var(--teal); color: var(--white); }
+    .btn-nav-fill { background: var(--teal); color: var(--white); border-color: var(--teal); }
+    .btn-nav-fill:hover { background: var(--teal-dark); border-color: var(--teal-dark); }
+    /* Adjust auth-layout to sit below navbar */
+    .auth-layout { min-height: calc(100vh - 64px); }
+    @media (max-width: 700px) {
+      .top-navbar .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CONSISTENT MAIN NAVBAR -->
+  <nav class="top-navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="brand">
+        <span class="brand-icon">⚕</span>
+        <span>Healthcare<strong>Hub</strong></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="index.html#services">Services</a></li>
+        <li><a href="index.html#why">Why Us</a></li>
+        <li><a href="index.html#contact">Contact</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="login.html" class="btn-nav btn-nav-outline" style="background:var(--teal);color:#fff;border-color:var(--teal);">Login</a>
+        <a href="register.html" class="btn-nav btn-nav-fill">Register</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="auth-layout">
+
+    <!-- LEFT PANEL -->
+    <div class="auth-panel-left">
+      <div class="panel-content">
+        <a href="index.html" class="back-link">← Back to Home</a>
+        <div class="panel-brand">
+          <span class="brand-icon">⚕</span>
+          <span class="brand-name">Healthcare<strong>Hub</strong></span>
+        </div>
+        <h1>Your Health Journey<br/>Starts Here</h1>
+        <p>Login to access your personalized healthcare dashboard — whether you're a patient or a medical professional.</p>
+        <div class="panel-features">
+          <div class="feature-item"><span>✅</span> Verified Healthcare Providers</div>
+          <div class="feature-item"><span>🔒</span> Secure &amp; Private Data</div>
+          <div class="feature-item"><span>📅</span> Real-Time Appointments</div>
+          <div class="feature-item"><span>💊</span> Digital Prescriptions</div>
+        </div>
+      </div>
+      <div class="panel-deco-circle c1"></div>
+      <div class="panel-deco-circle c2"></div>
+    </div>
+
+    <!-- RIGHT PANEL – LOGIN FORM -->
+    <div class="auth-panel-right">
+      <div class="auth-form-container">
+        <h2 class="form-title">Welcome Back</h2>
+        <p class="form-sub">Sign in to continue to your dashboard</p>
+
+        <!-- ROLE TABS -->
+        <div class="role-tabs" id="roleTabs">
+          <button class="role-tab active" onclick="setRole('receiver', this)">
+            <span>👤</span> Patient
+          </button>
+          <button class="role-tab" onclick="setRole('provider', this)">
+            <span>🩺</span> Provider
+          </button>
+        </div>
+
+        <form class="auth-form" action="#" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <div class="input-wrap">
+              <span class="input-icon">✉</span>
+              <input type="email" id="email" placeholder="you@example.com" required/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="input-wrap">
+              <span class="input-icon">🔑</span>
+              <input type="password" id="password" placeholder="••••••••" required/>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="checkbox-label">
+              <input type="checkbox" id="remember"/> Remember me
+            </label>
+            <a href="#" class="forgot-link">Forgot Password?</a>
+          </div>
+          <button type="submit" class="btn-submit" id="loginBtn">
+            Sign In as <span id="roleLabel">Patient</span>
+          </button>
+        </form>
+
+        <div class="auth-divider"><span>or</span></div>
+        <p class="auth-switch">
+          Don't have an account?
+          <a href="register.html">Create Account</a>
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let currentRole = 'receiver';
+
+    function setRole(role, btn) {
+      currentRole = role;
+      document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('roleLabel').textContent = role === 'provider' ? 'Provider' : 'Patient';
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      if (!email || !password) return;
+      if (currentRole === 'provider') {
+        window.location.href = 'provider-dashboard.html';
+      } else {
+        window.location.href = 'receiver-dashboard.html';
+      }
+    }
+  </script>
+
+</body>
+</html>
