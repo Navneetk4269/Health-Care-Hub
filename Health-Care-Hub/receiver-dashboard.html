@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Patient Dashboard – Healthcare Hub</title>
+  <link rel="stylesheet" href="dashboard.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    .nurse-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:20px; margin-top:16px; }
+    .nurse-card { background:#fff; border-radius:var(--radius); border:1.5px solid var(--border); padding:22px 20px 18px; box-shadow:0 2px 12px var(--shadow); transition:var(--transition); display:flex; flex-direction:column; gap:10px; }
+    .nurse-card:hover { box-shadow:0 6px 24px var(--shadow-md); transform:translateY(-2px); border-color:var(--teal-light); }
+    .nurse-top { display:flex; align-items:center; gap:14px; }
+    .nurse-badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:600; background:var(--teal-pale); color:var(--teal-dark); }
+    .nurse-badge.elderly { background:#FFF3E0; color:#E65100; }
+    .nurse-badge.icu { background:#FCE4EC; color:#880E4F; }
+    .nurse-badge.pediatric { background:#E8F5E9; color:#1B5E20; }
+    .nurse-badge.postop { background:#EDE7F6; color:#4527A0; }
+    .nurse-specs { display:flex; flex-direction:column; gap:4px; font-size:0.82rem; color:var(--text-mid); }
+    .nurse-specs span { display:flex; align-items:center; gap:6px; }
+    .nurse-avail { display:flex; align-items:center; gap:6px; font-size:0.8rem; }
+    .avail-dot-green { width:8px; height:8px; border-radius:50%; background:#4CAF50; display:inline-block; }
+    .avail-dot-orange { width:8px; height:8px; border-radius:50%; background:#FF9800; display:inline-block; }
+    .nurse-price { font-size:1rem; font-weight:700; color:var(--teal-dark); }
+    .btn-book-nurse { margin-top:auto; background:var(--teal); color:#fff; border:none; border-radius:8px; padding:10px 18px; font-size:0.88rem; font-weight:600; cursor:pointer; transition:var(--transition); font-family:var(--font-body); }
+    .btn-book-nurse:hover { background:var(--teal-dark); }
+    .equip-form-wrap { background:#fff; border-radius:var(--radius); border:1.5px solid var(--border); padding:32px 36px; max-width:680px; box-shadow:0 2px 16px var(--shadow); }
+    .equip-form-wrap h4 { font-family:var(--font-head); font-size:1.15rem; color:var(--text-dark); margin-bottom:20px; }
+    .equip-form-wrap .form-group { margin-bottom:16px; }
+    .equip-form-wrap label { font-size:0.83rem; font-weight:600; color:var(--text-mid); display:block; margin-bottom:6px; }
+    .equip-form-wrap input, .equip-form-wrap select, .equip-form-wrap textarea { width:100%; padding:10px 14px; border:1.5px solid var(--border); border-radius:8px; font-family:var(--font-body); font-size:0.9rem; color:var(--text-dark); background:#fafefe; transition:var(--transition); outline:none; }
+    .equip-form-wrap input:focus, .equip-form-wrap select:focus, .equip-form-wrap textarea:focus { border-color:var(--teal); background:#fff; }
+    .upload-zone { border:2px dashed var(--teal-light); border-radius:10px; padding:22px; text-align:center; cursor:pointer; transition:var(--transition); background:var(--teal-pale); position:relative; }
+    .upload-zone:hover { border-color:var(--teal); background:#E0F7FA; }
+    .upload-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+    .upload-zone p { font-size:0.85rem; color:var(--text-mid); margin-top:6px; }
+    .upload-zone .upload-icon { font-size:2rem; }
+    .upload-zone small { font-size:0.76rem; color:var(--text-light); }
+    .upload-note { font-size:0.78rem; color:#E65100; background:#FFF3E0; border-radius:6px; padding:8px 12px; margin-top:6px; display:flex; gap:6px; align-items:flex-start; }
+    .presc-required-badge { display:inline-block; padding:2px 8px; border-radius:20px; background:#FCE4EC; color:#880E4F; font-size:0.7rem; font-weight:700; margin-left:8px; }
+    .form-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    @media(max-width:560px) { .form-row-2 { grid-template-columns:1fr; } }
+    .invoice-card { background:#fff; border-radius:var(--radius); border:1.5px solid var(--border); padding:20px 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; box-shadow:0 2px 10px var(--shadow); margin-bottom:12px; flex-wrap:wrap; }
+    .invoice-left { display:flex; align-items:center; gap:16px; }
+    .invoice-icon { font-size:1.8rem; }
+    .invoice-info strong { font-size:0.95rem; color:var(--text-dark); display:block; }
+    .invoice-info span { font-size:0.8rem; color:var(--text-mid); }
+    .invoice-amount { font-size:1.15rem; font-weight:700; color:var(--teal-dark); }
+    .badge-paid { background:#E8F5E9; color:#1B5E20; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+    .badge-pending { background:#FFF3E0; color:#E65100; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+    .badge-overdue { background:#FCE4EC; color:#880E4F; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+    .billing-summary { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px; margin-bottom:28px; }
+    .bill-stat { background:#fff; border-radius:var(--radius); border:1.5px solid var(--border); padding:18px 20px; }
+    .bill-stat .bill-amount { font-size:1.5rem; font-weight:700; color:var(--teal-dark); }
+    .bill-stat span { font-size:0.8rem; color:var(--text-mid); }
+    .profile-info-banner { background:linear-gradient(120deg,var(--teal-pale),#fff); border:1.5px solid var(--teal-light); border-radius:var(--radius); padding:16px 22px; margin-bottom:22px; display:flex; align-items:center; gap:12px; font-size:0.85rem; color:var(--text-mid); }
+    .upload-record-box { background:#fff; border-radius:var(--radius); border:1.5px solid var(--border); padding:24px 28px; margin-bottom:22px; }
+    .upload-record-box h4 { font-family:var(--font-head); margin-bottom:16px; font-size:1rem; }
+    .upload-record-box label { font-size:0.83rem; font-weight:600; color:var(--text-mid); display:block; margin-bottom:6px; }
+    .upload-record-box input, .upload-record-box select { width:100%; padding:10px 14px; border:1.5px solid var(--border); border-radius:8px; font-family:var(--font-body); font-size:0.9rem; outline:none; transition:var(--transition); }
+    .upload-record-box input:focus, .upload-record-box select:focus { border-color:var(--teal); }
+    .services-subtabs { display:flex; gap:10px; margin-bottom:24px; flex-wrap:wrap; }
+    .service-subtab { padding:10px 22px; border-radius:30px; border:2px solid var(--border); background:#fff; font-size:0.88rem; font-weight:600; color:var(--text-mid); cursor:pointer; transition:var(--transition); font-family:var(--font-body); }
+    .service-subtab.active { background:var(--teal); color:#fff; border-color:var(--teal); }
+    .service-subtab:hover:not(.active) { border-color:var(--teal); color:var(--teal); }
+    .service-sub-section { display:none; }
+    .service-sub-section.active { display:block; }
+    .search-filter-bar { background:#fff; border-radius:var(--radius); border:1.5px solid var(--border); padding:18px 20px; margin-bottom:20px; display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    .search-filter-bar input[type=search] { flex:1; min-width:180px; padding:10px 14px; border:1.5px solid var(--border); border-radius:8px; font-family:var(--font-body); font-size:0.9rem; outline:none; transition:var(--transition); }
+    .search-filter-bar input:focus { border-color:var(--teal); }
+    .search-filter-bar select { padding:10px 12px; border:1.5px solid var(--border); border-radius:8px; font-family:var(--font-body); font-size:0.85rem; color:var(--text-mid); background:#fafefe; cursor:pointer; outline:none; transition:var(--transition); }
+    .search-filter-bar select:focus { border-color:var(--teal); }
+    .btn-search { padding:10px 20px; background:var(--teal); color:#fff; border:none; border-radius:8px; font-family:var(--font-body); font-size:0.88rem; font-weight:600; cursor:pointer; transition:var(--transition); }
+    .btn-search:hover { background:var(--teal-dark); }
+  </style>
+</head>
+<body>
+
+  <nav class="main-navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="brand"><span class="brand-icon">⚕</span><span>Healthcare<strong>Hub</strong></span></a>
+      <ul class="nav-links">
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="index.html#services">Services</a></li>
+        <li><a href="index.html#why">Why Us</a></li>
+        <li><a href="index.html#contact">Contact</a></li>
+      </ul>
+      <div class="nav-actions">
+        <div class="nav-user-area">
+          <div class="nav-notif">🔔 <span class="badge">2</span></div>
+          <div class="nav-user-chip">
+            <div class="avatar avatar-sm avatar-coral" id="navInitials">RS</div>
+            <div><div class="chip-name" id="navName">Riya Sharma</div><div class="chip-role">Patient</div></div>
+          </div>
+          <a href="index.html" class="nav-logout">🚪 Logout</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <nav class="dash-subnav">
+    <div class="subnav-inner">
+      <button class="subnav-item active" onclick="showSection('overview',this)"><span class="sn-icon">📊</span> Overview</button>
+      <button class="subnav-item" onclick="showSection('profile',this)"><span class="sn-icon">👤</span> My Profile</button>
+      <button class="subnav-item" onclick="showSection('history',this)"><span class="sn-icon">📋</span> Medical History</button>
+      <button class="subnav-item" onclick="showSection('services',this)"><span class="sn-icon">🔍</span> Search for Services</button>
+      <button class="subnav-item" onclick="showSection('billing',this)"><span class="sn-icon">💳</span> Billing &amp; Invoices</button>
+      <button class="subnav-item" onclick="showSection('settings',this)"><span class="sn-icon">⚙️</span> Settings</button>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div class="topbar-left"><h2 id="pageTitle">Overview</h2><span id="pageDate" class="page-date"></span></div>
+      <div class="topbar-right"><span style="font-size:0.8rem;color:var(--text-light);">Blood Group: O+ &nbsp;·&nbsp; Age: 28</span></div>
+    </header>
+
+    <!-- OVERVIEW -->
+    <section class="dash-section active" id="section-overview">
+      <div class="welcome-banner banner-coral">
+        <div><h3 id="welcomeName">Hello, Riya! 👋</h3><p>Your next appointment is with <strong>Dr. Anjali Mehta</strong> on <strong>Feb 25 at 10:30 AM</strong>.</p></div>
+        <button class="btn-primary-sm" onclick="showSection('services',null)">Find Services →</button>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-info"><strong>1</strong><span>Upcoming Appointment</span></div></div>
+        <div class="stat-card"><div class="stat-icon">👩‍⚕️</div><div class="stat-info"><strong>1</strong><span>Active Nurse</span></div></div>
+        <div class="stat-card"><div class="stat-icon">🛠️</div><div class="stat-info"><strong>2</strong><span>Rented Equipment</span></div></div>
+        <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-info"><strong>7</strong><span>Health Records</span></div></div>
+      </div>
+      <div class="section-row">
+        <div class="card wide">
+          <div class="card-header"><h4>Quick Actions</h4></div>
+          <div class="quick-actions">
+            <button class="qa-btn" onclick="showSection('services',null);setTimeout(()=>switchServiceTab('nurses'),60)">👩‍⚕️ Appoint Nurse</button>
+            <button class="qa-btn" onclick="showSection('services',null);setTimeout(()=>switchServiceTab('equipment'),60)">🛠️ Rent Equipment</button>
+            <button class="qa-btn" onclick="showSection('history',null)">📋 Medical History</button>
+            <button class="qa-btn" onclick="showSection('billing',null)">💳 Billing</button>
+            <button class="qa-btn" onclick="showSection('profile',null)">👤 My Profile</button>
+            <button class="qa-btn" onclick="showSection('settings',null)">⚙️ Settings</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h4>Notifications</h4></div>
+          <div class="notif-list">
+            <div class="notif-item"><span>📩</span><div><p><strong>Dr. Anjali Mehta</strong> confirmed your appointment</p><small>1 hr ago</small></div></div>
+            <div class="notif-item"><span>💊</span><div><p>Prescription issued by <strong>Dr. Anjali Mehta</strong></p><small>Feb 10</small></div></div>
+            <div class="notif-item"><span>🛠️</span><div><p>Your <strong>Oxygen Concentrator</strong> rental starts tomorrow</p><small>Feb 22</small></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MY PROFILE -->
+    <section class="dash-section" id="section-profile">
+      <div class="section-title-row"><h3>My Profile</h3><button class="btn-primary-sm" onclick="saveProfile()">Save Changes</button></div>
+      <div class="profile-info-banner"><span>ℹ️</span><span>Your profile is pre-filled with information from your registration. Update any details below and save.</span></div>
+      <div class="card full-card">
+        <div class="profile-layout">
+          <div class="profile-pic-area">
+            <div class="avatar avatar-xl avatar-coral" id="profileInitials">RS</div>
+            <button class="btn-outline-sm">Change Photo</button>
+            <div style="text-align:center;margin-top:10px;"><small style="color:var(--text-light);font-size:0.75rem;">Patient Account</small></div>
+          </div>
+          <div class="profile-fields">
+            <div class="presc-row">
+              <div class="form-group"><label>First Name</label><input type="text" id="pFirstName" value="Riya"/></div>
+              <div class="form-group"><label>Last Name</label><input type="text" id="pLastName" value="Sharma"/></div>
+            </div>
+            <div class="form-group"><label>Email Address</label><input type="email" id="pEmail" value="riya.sharma@gmail.com"/></div>
+            <div class="form-group"><label>Phone Number</label><input type="tel" id="pPhone" value="+91 98765 43210"/></div>
+            <div class="presc-row">
+              <div class="form-group"><label>Date of Birth</label><input type="date" id="pDob" value="1996-08-14"/></div>
+              <div class="form-group"><label>Gender</label><select id="pGender"><option>Female</option><option>Male</option><option>Other</option><option>Prefer not to say</option></select></div>
+            </div>
+            <div class="presc-row">
+              <div class="form-group"><label>Blood Group</label><input type="text" id="pBlood" value="O+"/></div>
+              <div class="form-group"><label>Emergency Contact</label><input type="tel" value="+91 91234 56789"/></div>
+            </div>
+            <div class="form-group"><label>Address</label><input type="text" id="pAddress" value="Baner, Pune – 411045"/></div>
+            <div class="form-group"><label>Known Allergies</label><textarea rows="2">No known allergies</textarea></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MEDICAL HISTORY -->
+    <section class="dash-section" id="section-history">
+      <div class="section-title-row"><h3>Medical History</h3></div>
+      <div class="upload-record-box">
+        <h4>📤 Upload New Document</h4>
+        <div class="form-row-2" style="margin-bottom:14px;">
+          <div class="form-group" style="margin:0;"><label>Document Name</label><input type="text" placeholder="e.g. Blood Test Report Jan 2025"/></div>
+          <div class="form-group" style="margin:0;"><label>Document Type</label><select><option>Lab Report</option><option>Prescription</option><option>Diagnostic / Radiology</option><option>Discharge Summary</option><option>Vaccination Certificate</option><option>Other</option></select></div>
+        </div>
+        <div class="upload-zone">
+          <input type="file" accept=".pdf,.jpg,.jpeg,.png" multiple/>
+          <div class="upload-icon">📁</div>
+          <p><strong>Click or drag &amp; drop</strong> your document here</p>
+          <small>Supported: PDF, JPG, PNG &nbsp;·&nbsp; Max 10MB per file</small>
+        </div>
+        <button class="btn-primary-sm" style="margin-top:14px;">+ Upload Document</button>
+      </div>
+      <div class="card full-card" style="margin-bottom:20px;">
+        <div class="card-header"><h4>📂 Existing Health Records</h4></div>
+        <table class="data-table">
+          <thead><tr><th>Record</th><th>Type</th><th>Doctor</th><th>Date</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>Blood Pressure Report</td><td>Lab Report</td><td>Dr. Anjali Mehta</td><td>Feb 10, 2025</td><td><button class="btn-table">View</button></td></tr>
+            <tr><td>ECG Report</td><td>Diagnostic</td><td>Dr. Anjali Mehta</td><td>Feb 10, 2025</td><td><button class="btn-table">View</button></td></tr>
+            <tr><td>CBC Blood Test</td><td>Lab Report</td><td>Dr. Ramesh Gupta</td><td>Jan 20, 2025</td><td><button class="btn-table">View</button></td></tr>
+            <tr><td>X-Ray – Left Knee</td><td>Radiology</td><td>Dr. Sunil Kadam</td><td>Dec 10, 2024</td><td><button class="btn-table">View</button></td></tr>
+            <tr><td>Skin Biopsy Report</td><td>Pathology</td><td>Dr. Pooja Nair</td><td>Nov 15, 2024</td><td><button class="btn-table">View</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="section-row">
+        <div class="card">
+          <div class="card-header"><h4>Past Diagnoses</h4></div>
+          <div class="notif-list">
+            <div class="notif-item"><span>🫀</span><div><p><strong>Hypertension Stage 1</strong></p><small>Diagnosed by Dr. Anjali Mehta · Feb 2025</small></div></div>
+            <div class="notif-item"><span>🤒</span><div><p><strong>Viral Fever &amp; Flu</strong></p><small>Diagnosed by Dr. Ramesh Gupta · Jan 2025</small></div></div>
+            <div class="notif-item"><span>🦷</span><div><p><strong>Skin Eczema (Mild)</strong></p><small>Diagnosed by Dr. Pooja Nair · Nov 2024</small></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h4>Vaccination Record</h4></div>
+          <div class="notif-list">
+            <div class="notif-item"><span>💉</span><div><p><strong>COVID-19 Booster</strong></p><small>Jan 15, 2024</small></div></div>
+            <div class="notif-item"><span>💉</span><div><p><strong>Flu Shot (Annual)</strong></p><small>Oct 08, 2024</small></div></div>
+            <div class="notif-item"><span>💉</span><div><p><strong>Hepatitis B</strong></p><small>Mar 20, 2023</small></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEARCH FOR SERVICES -->
+    <section class="dash-section" id="section-services">
+      <div class="section-title-row"><h3>Search for Services</h3></div>
+      <div class="services-subtabs">
+        <button class="service-subtab active" id="tab-nurses" onclick="switchServiceTab('nurses')">👩‍⚕️ Appoint a Nurse</button>
+        <button class="service-subtab" id="tab-equipment" onclick="switchServiceTab('equipment')">🛠️ Rent Medical Equipment</button>
+      </div>
+
+      <!-- APPOINT A NURSE -->
+      <div class="service-sub-section active" id="sub-nurses">
+        <div class="search-filter-bar">
+          <input type="search" placeholder="Search by nurse name or specialisation…"/>
+          <select>
+            <option value="">All Specialisations</option>
+            <option>General Nursing</option>
+            <option>ICU / Critical Care</option>
+            <option>Elderly Care</option>
+            <option>Pediatric Care</option>
+            <option>Post-Surgery Care</option>
+            <option>Physiotherapy Support</option>
+            <option>Palliative Care</option>
+          </select>
+          <select>
+            <option value="">Any Duration</option>
+            <option>Day Shift (8 hrs)</option>
+            <option>Night Shift (8 hrs)</option>
+            <option>Full Day (12 hrs)</option>
+            <option>24-Hour Live-in</option>
+            <option>Weekly</option>
+          </select>
+          <select>
+            <option value="">Any Location</option>
+            <option>Pune – Baner</option>
+            <option>Pune – Kothrud</option>
+            <option>Pune – Wakad</option>
+            <option>Mumbai</option>
+            <option>Nagpur</option>
+          </select>
+          <button class="btn-search">🔍 Search</button>
+        </div>
+        <div class="nurse-grid">
+          <div class="nurse-card">
+            <div class="nurse-top"><div class="avatar avatar-teal avatar-md">PP</div><div><strong style="font-size:0.98rem;">Priya Patkar</strong><div style="margin-top:3px;"><span class="nurse-badge postop">Post-Surgery Care</span></div><div class="stars-sm" style="margin-top:4px;">★★★★★ <small>4.9</small></div></div></div>
+            <div class="nurse-specs"><span>💼 7 years experience</span><span>📍 Baner, Pune</span><span>🕐 Day / Night / Full-day</span></div>
+            <div class="nurse-avail"><span class="avail-dot-green"></span> Available from tomorrow</div>
+            <div class="nurse-price">₹800 / shift</div>
+            <button class="btn-book-nurse">Book Nurse</button>
+          </div>
+          <div class="nurse-card">
+            <div class="nurse-top"><div class="avatar avatar-coral avatar-md">SN</div><div><strong style="font-size:0.98rem;">Sunita Nair</strong><div style="margin-top:3px;"><span class="nurse-badge elderly">Elderly Care</span></div><div class="stars-sm" style="margin-top:4px;">★★★★★ <small>4.8</small></div></div></div>
+            <div class="nurse-specs"><span>💼 10 years experience</span><span>📍 Kothrud, Pune</span><span>🕐 Live-in / Full-day</span></div>
+            <div class="nurse-avail"><span class="avail-dot-green"></span> Available today</div>
+            <div class="nurse-price">₹1,000 / shift</div>
+            <button class="btn-book-nurse">Book Nurse</button>
+          </div>
+          <div class="nurse-card">
+            <div class="nurse-top"><div class="avatar avatar-teal avatar-md">MK</div><div><strong style="font-size:0.98rem;">Meena Kulkarni</strong><div style="margin-top:3px;"><span class="nurse-badge icu">ICU / Critical Care</span></div><div class="stars-sm" style="margin-top:4px;">★★★★☆ <small>4.6</small></div></div></div>
+            <div class="nurse-specs"><span>💼 5 years experience</span><span>📍 Wakad, Pune</span><span>🕐 Night shift / 24-hr</span></div>
+            <div class="nurse-avail"><span class="avail-dot-orange"></span> Available from Mar 1</div>
+            <div class="nurse-price">₹1,200 / shift</div>
+            <button class="btn-book-nurse">Book Nurse</button>
+          </div>
+          <div class="nurse-card">
+            <div class="nurse-top"><div class="avatar avatar-teal avatar-md">AP</div><div><strong style="font-size:0.98rem;">Anjana Pawar</strong><div style="margin-top:3px;"><span class="nurse-badge pediatric">Pediatric Care</span></div><div class="stars-sm" style="margin-top:4px;">★★★★★ <small>4.7</small></div></div></div>
+            <div class="nurse-specs"><span>💼 8 years experience</span><span>📍 Baner, Pune</span><span>🕐 Day / Full-day</span></div>
+            <div class="nurse-avail"><span class="avail-dot-green"></span> Available today</div>
+            <div class="nurse-price">₹900 / shift</div>
+            <button class="btn-book-nurse">Book Nurse</button>
+          </div>
+          <div class="nurse-card">
+            <div class="nurse-top"><div class="avatar avatar-coral avatar-md">RD</div><div><strong style="font-size:0.98rem;">Rekha Desai</strong><div style="margin-top:3px;"><span class="nurse-badge elderly">Elderly Care</span></div><div class="stars-sm" style="margin-top:4px;">★★★★★ <small>4.9</small></div></div></div>
+            <div class="nurse-specs"><span>💼 12 years experience</span><span>📍 Mumbai</span><span>🕐 Live-in / Weekly</span></div>
+            <div class="nurse-avail"><span class="avail-dot-green"></span> Available today</div>
+            <div class="nurse-price">₹950 / shift</div>
+            <button class="btn-book-nurse">Book Nurse</button>
+          </div>
+          <div class="nurse-card">
+            <div class="nurse-top"><div class="avatar avatar-teal avatar-md">VJ</div><div><strong style="font-size:0.98rem;">Vandana Joshi</strong><div style="margin-top:3px;"><span class="nurse-badge postop">Post-Surgery Care</span></div><div class="stars-sm" style="margin-top:4px;">★★★★☆ <small>4.5</small></div></div></div>
+            <div class="nurse-specs"><span>💼 6 years experience</span><span>📍 Nagpur</span><span>🕐 Day / Night / Full-day</span></div>
+            <div class="nurse-avail"><span class="avail-dot-orange"></span> Available from Feb 28</div>
+            <div class="nurse-price">₹850 / shift</div>
+            <button class="btn-book-nurse">Book Nurse</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RENT EQUIPMENT -->
+      <div class="service-sub-section" id="sub-equipment">
+        <div class="equip-form-wrap">
+          <h4>🛠️ Equipment Rental Request</h4>
+          <p style="font-size:0.84rem;color:var(--text-mid);margin-bottom:20px;">Fill in the form to request equipment rental. Some categories require a valid hospital prescription before approval.</p>
+          <div class="form-row-2">
+            <div class="form-group"><label>Patient Name</label><input type="text" id="equipPatientName" value="Riya Sharma" readonly style="background:#f0fafa;"/></div>
+            <div class="form-group"><label>Contact Number</label><input type="tel" value="+91 98765 43210"/></div>
+          </div>
+          <div class="form-group">
+            <label>Equipment Category</label>
+            <select id="equipCategory" onchange="checkPrescriptionNeeded()">
+              <option value="">-- Select Category --</option>
+              <option value="mobility">Mobility Aids (Wheelchair, Walker, Crutches)</option>
+              <option value="monitoring">Monitoring Devices (BP Monitor, Pulse Oximeter, Glucometer)</option>
+              <option value="respiratory" data-prescription="true">Respiratory Equipment (Oxygen Concentrator, Nebuliser, CPAP)</option>
+              <option value="hospital-bed" data-prescription="true">Hospital Beds (Manual / Electric)</option>
+              <option value="orthopedic" data-prescription="true">Orthopedic Equipment (Knee Brace, Back Support, Traction)</option>
+              <option value="wound-care">Wound Care (Dressing Kit, Suction Machine)</option>
+              <option value="other">Other — Specify below</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Specific Equipment Needed</label><input type="text" placeholder="e.g. Electric hospital bed with mattress, Oxygen concentrator 5L/min"/></div>
+          <div class="form-group"><label>Additional Requirements / Notes</label><textarea rows="3" placeholder="Any specific requirements, accessories, or medical notes…"></textarea></div>
+          <div class="form-row-2">
+            <div class="form-group"><label>Rental Start Date</label><input type="date"/></div>
+            <div class="form-group"><label>Rental Duration</label><select><option>1 week</option><option>2 weeks</option><option>1 month</option><option>2–3 months</option><option>6 months</option><option>Ongoing (monthly)</option></select></div>
+          </div>
+          <div class="form-group"><label>Delivery Address</label><input type="text" value="Baner, Pune – 411045"/></div>
+          <div class="form-group" id="prescriptionSection" style="display:none;">
+            <label>Upload Hospital Prescription <span class="presc-required-badge">Required</span></label>
+            <div class="upload-note">⚠️ This equipment category requires a valid prescription from a certified hospital or doctor. Please upload a clear copy to proceed.</div>
+            <div class="upload-zone" style="margin-top:10px;">
+              <input type="file" accept=".pdf,.jpg,.jpeg,.png"/>
+              <div class="upload-icon">📋</div>
+              <p><strong>Upload Prescription</strong></p>
+              <small>PDF, JPG or PNG &nbsp;·&nbsp; Max 5MB</small>
+            </div>
+          </div>
+          <div class="form-group" id="optionalPrescriptionSection">
+            <label>Upload Prescription (Optional)</label>
+            <div class="upload-zone">
+              <input type="file" accept=".pdf,.jpg,.jpeg,.png"/>
+              <div class="upload-icon">📄</div>
+              <p><strong>Attach prescription if available</strong></p>
+              <small>PDF, JPG or PNG &nbsp;·&nbsp; Max 5MB</small>
+            </div>
+          </div>
+          <button class="btn-book-nurse" style="width:100%;padding:13px;font-size:0.95rem;margin-top:8px;">Submit Rental Request →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- BILLING & INVOICES -->
+    <section class="dash-section" id="section-billing">
+      <div class="section-title-row"><h3>Billing &amp; Invoices</h3><button class="btn-primary-sm">Download All</button></div>
+      <div class="billing-summary">
+        <div class="bill-stat"><div class="bill-amount">₹4,200</div><span>Total Spent (This Month)</span></div>
+        <div class="bill-stat"><div class="bill-amount" style="color:#E65100;">₹1,500</div><span>Pending Payments</span></div>
+        <div class="bill-stat"><div class="bill-amount" style="color:#1B5E20;">₹2,700</div><span>Paid This Month</span></div>
+        <div class="bill-stat"><div class="bill-amount">5</div><span>Total Invoices</span></div>
+      </div>
+      <div class="invoice-card">
+        <div class="invoice-left"><div class="invoice-icon">🩺</div><div class="invoice-info"><strong>Consultation – Dr. Anjali Mehta</strong><span>Feb 23, 2025 · Cardiology</span></div></div>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;"><span class="badge-paid">Paid</span><div class="invoice-amount">₹500</div><button class="btn-table">Download</button></div>
+      </div>
+      <div class="invoice-card">
+        <div class="invoice-left"><div class="invoice-icon">👩‍⚕️</div><div class="invoice-info"><strong>Nurse – Sunita Nair (3 days, Elderly Care)</strong><span>Feb 20–22, 2025</span></div></div>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;"><span class="badge-paid">Paid</span><div class="invoice-amount">₹2,200</div><button class="btn-table">Download</button></div>
+      </div>
+      <div class="invoice-card">
+        <div class="invoice-left"><div class="invoice-icon">🛠️</div><div class="invoice-info"><strong>Equipment Rental – Oxygen Concentrator</strong><span>Feb 23 – Mar 22, 2025</span></div></div>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;"><span class="badge-pending">Pending</span><div class="invoice-amount">₹1,500</div><button class="btn-table">Pay Now</button></div>
+      </div>
+      <div class="invoice-card">
+        <div class="invoice-left"><div class="invoice-icon">🧪</div><div class="invoice-info"><strong>Lab – CBC Blood Test · SRL Diagnostics</strong><span>Jan 20, 2025</span></div></div>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;"><span class="badge-paid">Paid</span><div class="invoice-amount">₹350</div><button class="btn-table">Download</button></div>
+      </div>
+      <div class="invoice-card">
+        <div class="invoice-left"><div class="invoice-icon">🩺</div><div class="invoice-info"><strong>Consultation – Dr. Ramesh Gupta</strong><span>Jan 22, 2025 · General Physician</span></div></div>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;"><span class="badge-overdue">Overdue</span><div class="invoice-amount">₹300</div><button class="btn-table">Pay Now</button></div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="dash-section" id="section-settings">
+      <div class="section-title-row"><h3>Settings</h3><button class="btn-primary-sm">Save Changes</button></div>
+      <div class="card full-card">
+        <div class="prescription-form">
+          <h4>Notification Preferences</h4>
+          <div style="display:flex;flex-direction:column;gap:14px;margin-top:8px;">
+            <label class="radio-label"><input type="checkbox" checked style="accent-color:var(--teal);width:16px;height:16px;"/> Email notifications for appointment reminders</label>
+            <label class="radio-label"><input type="checkbox" checked style="accent-color:var(--teal);width:16px;height:16px;"/> SMS alerts for booking confirmations</label>
+            <label class="radio-label"><input type="checkbox" style="accent-color:var(--teal);width:16px;height:16px;"/> Health tips &amp; newsletter</label>
+            <label class="radio-label"><input type="checkbox" checked style="accent-color:var(--teal);width:16px;height:16px;"/> Billing &amp; invoice notifications</label>
+            <label class="radio-label"><input type="checkbox" checked style="accent-color:var(--teal);width:16px;height:16px;"/> Nurse &amp; equipment rental updates</label>
+          </div>
+          <h4 style="margin-top:24px">Account Security</h4>
+          <div class="presc-row" style="margin-top:10px;">
+            <div class="form-group"><label>Current Password</label><input type="password" placeholder="••••••••"/></div>
+            <div class="form-group"><label>New Password</label><input type="password" placeholder="Min 8 characters"/></div>
+          </div>
+          <div class="form-group"><label>Confirm New Password</label><input type="password" placeholder="Repeat new password"/></div>
+          <h4 style="margin-top:24px">Privacy</h4>
+          <div style="display:flex;flex-direction:column;gap:14px;margin-top:8px;">
+            <label class="radio-label"><input type="checkbox" checked style="accent-color:var(--teal);width:16px;height:16px;"/> Allow doctors to access my health records</label>
+            <label class="radio-label"><input type="checkbox" style="accent-color:var(--teal);width:16px;height:16px;"/> Share anonymized data for research</label>
+          </div>
+          <button class="btn-submit-sm" style="margin-top:20px;">Save Settings</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById('pageDate').textContent = new Date().toDateString();
+    const sectionTitles = { overview:'Overview', profile:'My Profile', history:'Medical History', services:'Search for Services', billing:'Billing & Invoices', settings:'Settings' };
+
+    function showSection(id, clickedBtn) {
+      document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('active'));
+      const sec = document.getElementById('section-' + id);
+      if (sec) sec.classList.add('active');
+      document.querySelectorAll('.subnav-item').forEach(n => n.classList.remove('active'));
+      if (clickedBtn) { clickedBtn.classList.add('active'); }
+      else { document.querySelectorAll('.subnav-item').forEach(btn => { if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes("'" + id + "'")) btn.classList.add('active'); }); }
+      document.getElementById('pageTitle').textContent = sectionTitles[id] || id;
+    }
+
+    function switchServiceTab(tab) {
+      document.querySelectorAll('.service-subtab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.service-sub-section').forEach(s => s.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      document.getElementById('sub-' + tab).classList.add('active');
+    }
+
+    function checkPrescriptionNeeded() {
+      const sel = document.getElementById('equipCategory');
+      const opt = sel.options[sel.selectedIndex];
+      const needs = opt.getAttribute('data-prescription') === 'true';
+      document.getElementById('prescriptionSection').style.display = needs ? 'block' : 'none';
+      document.getElementById('optionalPrescriptionSection').style.display = needs ? 'none' : 'block';
+    }
+
+    function saveProfile() {
+      const fn = document.getElementById('pFirstName').value;
+      const ln = document.getElementById('pLastName').value;
+      const initials = (fn[0]||'') + (ln[0]||'');
+      document.getElementById('navName').textContent = fn + ' ' + ln;
+      document.getElementById('navInitials').textContent = initials;
+      document.getElementById('profileInitials').textContent = initials;
+      document.getElementById('welcomeName').textContent = 'Hello, ' + fn + '! 👋';
+      alert('Profile saved successfully!');
+    }
+  </script>
+</body>
+</html>
